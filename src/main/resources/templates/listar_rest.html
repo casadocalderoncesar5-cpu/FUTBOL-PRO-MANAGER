@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clubes - Fútbol Pro Manager</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --pitch-green: #064e3b;
+            --pitch-light: #059669;
+            --neon-green: #10b981;
+            --gold-trophy: #f59e0b;
+            --stadium-dark: #0d1b2a;
+        }
+        body {
+            background-color: #f0fdf4;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .navbar-soccer {
+            background-color: var(--stadium-dark);
+            border-bottom: 3px solid var(--gold-trophy);
+        }
+        .card-soccer {
+            border: 2px solid #10b981;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+        }
+        .pitch-table-header {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #065f46 100%);
+            color: white;
+        }
+        .pitch-table-header th {
+            border-color: rgba(255, 255, 255, 0.15);
+            font-weight: 700;
+            padding: 1rem;
+        }
+        .btn-rest {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            font-weight: 700;
+            border: none;
+        }
+        .btn-rest:hover {
+            background: #047857;
+            color: #ffeb3b;
+        }
+        .live-pulse {
+            width: 10px;
+            height: 10px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR ESTADIO -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-soccer sticky-top shadow">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center" th:href="@{/}">
+            <span class="fs-3 me-2">⚽</span>
+            <span class="text-white tracking-wide">FUTBOL <span class="text-warning">PRO MANAGER</span></span>
+            <span class="badge bg-warning text-dark ms-2 px-2 py-1 small rounded-pill">API REST</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menu">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item"><a class="nav-link text-white" th:href="@{/}"><i class="bi bi-house-door-fill me-1"></i>Estadio Inicio</a></li>
+                <li class="nav-item"><a class="nav-link active fw-bold text-white px-3 py-1 rounded bg-success text-white" th:href="@{/listar-rest}"><i class="bi bi-shield-shaded me-1"></i>Clubes</a></li>
+                <li class="nav-item"><a class="nav-link text-info px-2" th:href="@{/entrenadores}"><i class="bi bi-person-badge-fill me-1"></i>Entrenadores</a></li>
+                <li class="nav-item"><a class="nav-link text-success px-2" th:href="@{/jugadores}"><i class="bi bi-people-fill me-1"></i>Plantel Jugadores</a></li>
+                <li class="nav-item"><a class="nav-link text-warning px-2" th:href="@{/asociaciones}"><i class="bi bi-building me-1"></i>Federaciones</a></li>
+                <li class="nav-item"><a class="nav-link text-danger px-2" th:href="@{/competiciones}"><i class="bi bi-trophy-fill me-1"></i>Competiciones</a></li>
+                <li class="nav-item"><a class="nav-link text-white px-2" th:href="@{/arbitros}"><i class="bi bi-person-badge-fill me-1"></i>Árbitros</a></li>
+                <li class="nav-item ms-lg-2">
+                    <a class="nav-link text-white fw-bold px-3 py-1 rounded bg-success bg-opacity-75" th:href="@{/club-rest}">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Inscribir Club
+                    </a>
+                </li>
+                <li class="nav-item"><a class="nav-link text-warning fw-semibold px-2" href="/api/clubes" target="_blank"><i class="bi bi-code-slash me-1"></i>JSON Endpoint</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <span class="badge bg-success mb-1 d-inline-flex align-items-center gap-2">
+                <span class="live-pulse"></span> PERSISTENCIA NOSQL EN MONGODB ATLAS
+            </span>
+            <h2 class="mb-0 fw-bold text-dark">
+                ⚽ Marcador Oficial de Clubes (API REST)
+            </h2>
+            <small class="text-muted">Consulta asíncrona mediante <code>GET /api/clubes</code> a la colección <code>clubes</code> en MongoDB Atlas.</small>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="cargarClubesRest()" class="btn btn-outline-success fw-bold">
+                <i class="bi bi-arrow-clockwise me-1"></i> Actualizar Marcador
+            </button>
+            <a th:href="@{/club-rest}" class="btn btn-rest shadow-sm">
+                <i class="bi bi-plus-circle-fill me-1"></i> + Registrar Club (REST)
+            </a>
+        </div>
+    </div>
+
+    <!-- TABLA DE CLUBES REST -->
+    <div class="card card-soccer">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="pitch-table-header">
+                <tr>
+                    <th style="width: 80px;" class="text-center">ID</th>
+                    <th>Club Deportivo</th>
+                    <th>Director Técnico (@DocRef)</th>
+                    <th>Asociación (@DocRef)</th>
+                    <th>Competiciones (@DocRef)</th>
+                    <th style="width: 130px;" class="text-center">API REST</th>
+                </tr>
+                </thead>
+                <tbody id="cuerpoTablaRest" class="bg-white">
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <div class="spinner-border spinner-border-sm text-success me-2"></div>
+                        Consultando GET /api/clubes en MongoDB Atlas...
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="text-center py-4 text-muted small mt-5 border-top bg-white">
+    ⚡ <strong>Fútbol Pro Manager</strong> | API REST con Spring Data MongoDB + Java 21
+</footer>
+
+<script>
+    async function cargarClubesRest() {
+        const tbody = document.getElementById('cuerpoTablaRest');
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm text-success me-2"></div>
+            Consultando GET /api/clubes en MongoDB Atlas...
+        </td></tr>`;
+
+        try {
+            const res = await fetch('/api/clubes');
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const clubes = await res.json();
+
+            if (!clubes || clubes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-emoji-neutral fs-2 d-block mb-2"></i>
+                    No hay clubes registrados aún en MongoDB Atlas.
+                    <div class="mt-2">
+                        <a href="/club-rest" class="btn btn-sm btn-rest text-white">¡Registrar primer Club vía API REST!</a>
+                    </div>
+                </td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            clubes.forEach(c => {
+                let entHtml = '<span class="badge bg-light text-muted border p-2">Sin DT asignado</span>';
+                if (c.entrenador) {
+                    const nombreCompleto = c.entrenador.nombreCompleto || ((c.entrenador.nombre || '') + ' ' + (c.entrenador.apellido || ''));
+                    entHtml = `<span class="badge bg-secondary p-2"><i class="bi bi-person-badge me-1"></i>${nombreCompleto}</span>`;
+                }
+
+                let ascHtml = '<span class="badge bg-light text-muted border p-2">Sin federación</span>';
+                if (c.asociacion) {
+                    ascHtml = `<span class="badge bg-info text-dark p-2"><i class="bi bi-building me-1"></i>${c.asociacion.siglas || c.asociacion.nombre || 'Asociación'} (${c.asociacion.pais || 'Oficial'})</span>`;
+                }
+
+                let compHtml = '<span class="text-muted small"><em>Sin torneos registrados</em></span>';
+                if (c.competiciones && c.competiciones.length > 0) {
+                    compHtml = '<div class="d-flex flex-wrap gap-1">' +
+                        c.competiciones.map(comp =>
+                            `<span class="badge bg-warning text-dark p-2"><i class="bi bi-trophy me-1"></i>${comp.nombre}</span>`
+                        ).join('') +
+                        '</div>';
+                }
+
+                const displayId = (c.id && !isNaN(c.id) && String(c.id).length < 10) ? c.id : (index + 1);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center fw-bold text-secondary">#${displayId}</td>
+                    <td>
+                        <strong class="text-dark fs-6">
+                            <span class="text-success me-1">⚽</span> ${c.nombre}
+                        </strong>
+                    </td>
+                    <td>${entHtml}</td>
+                    <td>${ascHtml}</td>
+                    <td>${compHtml}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarRest('${c.id}', '${c.nombre}')" title="Eliminar mediante DELETE /api/clubes/${c.id}">
+                            <i class="bi bi-trash3"></i> Eliminar
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> Error al consultar API REST: ${e.message}
+            </td></tr>`;
+        }
+    }
+
+    async function eliminarRest(id, nombre) {
+        if (!confirm(`¿Eliminar el club "${nombre}" mediante llamada DELETE /api/clubes/${id}?`)) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/clubes/${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok || res.status === 204) {
+                cargarClubesRest();
+            } else {
+                alert('Error al eliminar en la API REST.');
+            }
+        } catch (e) {
+            alert('Error al conectar con la API REST: ' + e.message);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', cargarClubesRest);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Árbitros - Fútbol Pro Manager</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --pitch-green: #064e3b;
+            --pitch-light: #059669;
+            --neon-green: #10b981;
+            --gold-trophy: #f59e0b;
+            --stadium-dark: #0d1b2a;
+        }
+        body {
+            background-color: #f0fdf4;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .navbar-soccer {
+            background-color: var(--stadium-dark);
+            border-bottom: 3px solid var(--gold-trophy);
+        }
+        .referee-card {
+            border: 2px solid #334155;
+            border-radius: 14px;
+            background: white;
+            transition: all 0.25s ease;
+        }
+        .referee-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(51, 65, 85, 0.25);
+        }
+        .card-badge-yellow {
+            display: inline-block;
+            width: 14px;
+            height: 20px;
+            background-color: #facc15;
+            border-radius: 2px;
+            border: 1px solid #ca8a04;
+        }
+        .card-badge-red {
+            display: inline-block;
+            width: 14px;
+            height: 20px;
+            background-color: #ef4444;
+            border-radius: 2px;
+            border: 1px solid #b91c1c;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR ESTADIO -->
+<nav class="navbar navbar-expand-lg navbar-dark navbar-soccer sticky-top shadow">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center" th:href="@{/}">
+            <span class="fs-3 me-2">⚽</span>
+            <span class="text-white tracking-wide">FUTBOL <span class="text-warning">PRO MANAGER</span></span>
+            <span class="badge bg-warning text-dark ms-2 px-2 py-1 small rounded-pill">API REST</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menu">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item"><a class="nav-link text-white" th:href="@{/}"><i class="bi bi-house-door-fill me-1"></i>Estadio Inicio</a></li>
+                <li class="nav-item"><a class="nav-link text-white px-2" th:href="@{/listar-rest}"><i class="bi bi-shield-shaded me-1"></i>Clubes</a></li>
+                <li class="nav-item"><a class="nav-link text-info px-2" th:href="@{/entrenadores}"><i class="bi bi-person-badge-fill me-1"></i>Entrenadores</a></li>
+                <li class="nav-item"><a class="nav-link text-success px-2" th:href="@{/jugadores}"><i class="bi bi-people-fill me-1"></i>Plantel Jugadores</a></li>
+                <li class="nav-item"><a class="nav-link text-warning px-2" th:href="@{/asociaciones}"><i class="bi bi-building me-1"></i>Federaciones</a></li>
+                <li class="nav-item"><a class="nav-link text-danger px-2" th:href="@{/competiciones}"><i class="bi bi-trophy-fill me-1"></i>Competiciones</a></li>
+                <li class="nav-item"><a class="nav-link active fw-bold text-white bg-dark px-3 py-1 rounded" th:href="@{/arbitros}"><i class="bi bi-person-badge-fill me-1"></i>Árbitros</a></li>
+                <li class="nav-item ms-lg-2">
+                    <a class="nav-link text-white fw-bold px-3 py-1 rounded bg-success bg-opacity-75" th:href="@{/club-rest}">
+                        <i class="bi bi-plus-circle-fill me-1"></i> Inscribir Club
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-4">
+
+    <!-- ENCABEZADO -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <div>
+            <span class="badge bg-dark mb-1">COLEGIO OFICIAL DE ÁRBITROS FIFA / CONMEBOL / UEFA</span>
+            <h2 class="mb-0 fw-bold text-dark">
+                🟨🟥 Panel de Árbitros Internacionales
+            </h2>
+            <small class="text-muted">Colección <code>arbitros</code> en MongoDB Atlas persistida mediante API REST.</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="card-badge-yellow shadow-sm" title="Tarjeta Amarilla"></span>
+            <span class="card-badge-red shadow-sm me-2" title="Tarjeta Roja"></span>
+            <a th:href="@{/listar-rest}" class="btn btn-outline-secondary fw-bold">
+                <i class="bi bi-arrow-left me-1"></i> Ver Clubes (REST)
+            </a>
+        </div>
+    </div>
+
+    <!-- FORMULARIO ASÍNCRONO PARA REGISTRAR ÁRBITRO VÍA API REST -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-person-plus-fill text-dark me-2"></i>Registrar Nuevo Árbitro (Vía POST /api/clubes/arbitros)</h5>
+        <form id="formArbitro" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Nombre *</label>
+                <input type="text" class="form-control" id="arbNombre" placeholder="Ej: Wilmar" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Apellido *</label>
+                <input type="text" class="form-control" id="arbApellido" placeholder="Ej: Roldán" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">Nacionalidad *</label>
+                <input type="text" class="form-control" id="arbNacionalidad" placeholder="Ej: Colombiana" required>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label small fw-bold">Edad *</label>
+                <input type="number" class="form-control" id="arbEdad" placeholder="Ej: 44" required min="20" max="65">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold">Categoría *</label>
+                <select class="form-select" id="arbCategoria" required>
+                    <option value="FIFA Elite">FIFA Elite</option>
+                    <option value="FIFA Internacional">FIFA Internacional</option>
+                    <option value="CONMEBOL Elite">CONMEBOL Elite</option>
+                    <option value="UEFA Elite">UEFA Elite</option>
+                    <option value="Nacional Primera A">Nacional Primera A</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" id="btnGuardarArb" class="btn btn-dark fw-bold w-100 py-2">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                </button>
+            </div>
+        </form>
+
+        <div id="alertArb" class="mt-3 d-none alert alert-success py-2 px-3 small"></div>
+    </div>
+
+    <!-- LISTADO DE ÁRBITROS EN TARJETAS DE FÚTBOL -->
+    <div class="row g-3">
+        <div class="col-md-4 col-sm-6" th:each="a : ${arbitros}">
+            <div class="referee-card p-3 shadow-sm h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fs-4">📢</span>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="card-badge-yellow"></span>
+                            <span class="card-badge-red"></span>
+                            <span class="badge bg-dark ms-1" th:text="${a.edad} + ' años'"></span>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1" th:text="${a.nombreCompleto}">Wilmar Roldán</h5>
+                    <div class="small text-muted mb-1">
+                        <i class="bi bi-flag-fill text-primary me-1"></i>Nacionalidad: <strong class="text-dark" th:text="${a.nacionalidad}">Colombiana</strong>
+                    </div>
+                    <div class="small text-muted">
+                        <i class="bi bi-award-fill text-warning me-1"></i>Categoría: <span class="badge bg-secondary" th:text="${a.categoria}">FIFA Internacional</span>
+                    </div>
+                </div>
+                <div class="border-top pt-2 mt-2 text-end text-muted small">
+                    <span class="badge bg-light text-secondary border" th:text="'Árbitro #' + ${a.id}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="text-center py-4 text-muted small mt-5 border-top bg-white">
+    ⚡ <strong>Fútbol Pro Manager</strong> | API REST con Spring Data MongoDB + Java 21
+</footer>
+
+<script>
+    document.getElementById('btnGuardarArb').addEventListener('click', async function() {
+        const nombre = document.getElementById('arbNombre').value.trim();
+        const apellido = document.getElementById('arbApellido').value.trim();
+        const nacionalidad = document.getElementById('arbNacionalidad').value.trim();
+        const edad = document.getElementById('arbEdad').value;
+        const categoria = document.getElementById('arbCategoria').value;
+
+        if (!nombre || !apellido || !nacionalidad || !edad) {
+            alert('Por favor complete todos los campos.');
+            return;
+        }
+
+        const payload = {
+            nombre: nombre,
+            apellido: apellido,
+            nacionalidad: nacionalidad,
+            edad: parseInt(edad),
+            categoria: categoria
+        };
+
+        try {
+            const res = await fetch('/api/clubes/arbitros', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok || res.status === 201) {
+                const data = await res.json();
+                const alertBox = document.getElementById('alertArb');
+                alertBox.textContent = `¡Árbitro "${data.nombre} ${data.apellido}" registrado exitosamente en MongoDB Atlas con ID #${data.id}!`;
+                alertBox.classList.remove('d-none');
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                alert('Error al guardar árbitro en la API REST.');
+            }
+        } catch (e) {
+            alert('Error de conexión: ' + e.message);
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
